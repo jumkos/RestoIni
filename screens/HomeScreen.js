@@ -14,7 +14,7 @@ import {
   List, ListItem, Avatar,
   SearchBar, Header
 } from 'react-native-elements';
-import { MonoText } from '../components/StyledText';
+import _ from "lodash";
 
 export default class HomeScreen extends React.Component {
   constructor(props) {
@@ -27,6 +27,8 @@ export default class HomeScreen extends React.Component {
       seed: 1,
       error: null,
       refreshing: false,
+      query: '',
+      fullData: [],
     };
   }
 
@@ -34,6 +36,17 @@ export default class HomeScreen extends React.Component {
     header: null,
   };
 
+  handleSearch = (text) => {
+      const formatQuery = text.toLowerCase();
+      const data = _.filter(this.state.fullData, data => {
+        if(data.Name.includes(formatQuery)){
+          return true;
+        }
+        return false;
+      });      
+      this.setState({query : text, data});
+   
+  }
 
   componentDidMount() {
     this.makeRemoteRequest();
@@ -41,19 +54,31 @@ export default class HomeScreen extends React.Component {
 
   makeRemoteRequest = () => {
     const { page, seed } = this.state;
-    const url = `https://randomuser.me/api/?seed=${seed}&page=${page}&results=20`;
+    const url = `http://192.168.1.25:8889/Resto/api/foods/getfoods`;
     this.setState({ loading: true });
-    fetch(url)
-      .then(res => res.json())
-      .then(res => {
+    fetch(url, {
+      method: 'GET', 
+      headers: {
+        "Content-Type" : "application/json",
+        "Authorization": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJJZCI6IjMiLCJNX0dyb3VwdXNlcl9JZCI6IjEiLCJNX1ZlbmRvcl9JZCI6IjMiLCJVc2VybmFtZSI6ImFuZGlrIiwiUGFzc3dvcmQiOiI4ZDNlNjdiY2UyN2Y4MGI5YmU5NDNkYTViMzE2ZjVmOSIsIklzTG9nZ2VkSW4iOiIwIiwiSXNBY3RpdmUiOiIxIiwiTGFuZ3VhZ2UiOiJpbmRvbmVzaWEiLCJDcmVhdGVkQnkiOiJzdXBlcmFkbWluIiwiTW9kaWZpZWRCeSI6bnVsbCwiQ3JlYXRlZCI6IjIwMTktMDUtMjIgMTM6MTI6MjUiLCJNb2RpZmllZCI6IjIwMTktMDUtMjMgMTU6NDA6MDEifQ.-pZ6B-iwGN_HZhWwYYyFIJUCWUilKYs3mGQhmzO6toI" 
+      }
+    }
+    )
+      .then(res => 
+      console.log("a", res.json())) 
+      .then(res => { 
+        console.log("Res", res);
         this.setState({
           data: page === 1 ? res.results : [...this.state.data, ...res.results],
+          fullData: page === 1 ? res.results : [...this.state.data, ...res.results],
           error: res.error || null,
           loading: false,
           refreshing: false
-        });
-      })
+        }); 
+      }
+      )
       .catch(error => {
+        console.log("catct", error);
         this.setState({ error, loading: false });
       });
   };
@@ -72,7 +97,7 @@ export default class HomeScreen extends React.Component {
   };
 
   renderHeader = () => {
-    return <SearchBar placeholder="Type Here..." lightTheme round />;
+    return <SearchBar placeholder="Type Here..." lightTheme round onChangeText={this.handleSearch} value={this.state.query}/>;
   };
 
   renderFooter = () => {
@@ -92,6 +117,9 @@ export default class HomeScreen extends React.Component {
   };
 
   render() {
+    
+    const { query } = this.state;
+
     return (
       <View style={styles.container}>
         <Header
@@ -99,58 +127,26 @@ export default class HomeScreen extends React.Component {
           centerComponent={{ text: 'MY TITLE', style: { color: '#fff' } }}
           rightComponent={{ icon: 'home', color: '#fff' }}
         />
-        {/* <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-          <View style={styles.welcomeContainer}>
-            <Image
-              source={
-                __DEV__
-                  ? require('../assets/images/robot-dev.png')
-                  : require('../assets/images/robot-prod.png')
-              }
-              style={styles.welcomeImage}
-            />
-          </View>
-
-          <View style={styles.getStartedContainer}>
-            {this._maybeRenderDevelopmentModeWarning()}
-
-            <Text style={styles.getStartedText}>Get started by opening</Text>
-
-            <View style={[styles.codeHighlightContainer, styles.homeScreenFilename]}>
-              <MonoText style={styles.codeHighlightText}>screens/HomeScreen.js</MonoText>
-            </View>
-
-            
-
-          </View>
-
-          <View style={styles.helpContainer}>
-            <TouchableOpacity onPress={this._handleHelpPress} style={styles.helpLink}>
-              <Text style={styles.helpLinkText}>Help, it didn’t automatically reload!</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView> */}
-       
+        <SearchBar placeholder="Type Here..." lightTheme round onChangeText={this.handleSearch} value={query}/>
           <FlatList
             data={this.state.data}
             renderItem={({ item }) => (
 
               <ListItem
                 roundAvatar
-                title={`${item.name.first} ${item.name.last}`}
-                subtitle={item.email}
+                title={`${item.Name}`}
+                subtitle={item.Description}
                 leftAvatar={<Avatar
                   size="large"
                   source={{
-                    uri: item.picture.thumbnail,
+                    uri: "http://192.168.1.33/publicRes/"+item.Url,
                   }}
                 />}
-                rightSubtitle={item.location.coordinates.latitude}
+                rightSubtitle={`Rp. ${item.Price}`}
               />
             )}
-            keyExtractor={item => item.email}
+            keyExtractor={item => item.Name}
             ItemSeparatorComponent={this.renderSeparator}
-            ListHeaderComponent={this.renderHeader}
             ListFooterComponent={this.renderFooter}
           />
       </View>
