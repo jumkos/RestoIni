@@ -125,6 +125,10 @@ export default class HomeScreen extends React.Component {
           leftComponent={{ icon: 'menu', color: '#fff' }}
           centerComponent={{ text: 'MY TITLE', style: { color: '#fff' } }}
           rightComponent={{ icon: 'home', color: '#fff' }}
+          containerStyle={{
+            backgroundColor: '#33b35a',
+            justifyContent: 'space-around',
+          }}
         />
         <SearchBar placeholder="Type Here..." lightTheme round onChangeText={this.handleSearch} value={query}/>
           <FlatList
@@ -135,7 +139,7 @@ export default class HomeScreen extends React.Component {
               <ListItem
                 roundAvatar
                 title={`${item.Name}`}
-                subtitle={item.Description}
+                subtitle={item.Vendor.Name}
                 leftAvatar={<Avatar
                   size="medium"
                   source={{
@@ -143,6 +147,9 @@ export default class HomeScreen extends React.Component {
                   }}
                 />}
                 rightSubtitle={`Rp. ${item.Price}`}
+                rightSubtitleStyle = {{ 
+                  color: '#33b35a'
+                }}
               />
             )}
             keyExtractor={item => item.Name}
