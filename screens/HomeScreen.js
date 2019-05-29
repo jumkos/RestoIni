@@ -8,13 +8,16 @@ import {
   TouchableOpacity,
   View,
   FlatList,
+  Modal,
+  TouchableHighlight,
 } from 'react-native';
 import { WebBrowser } from 'expo';
 import {
-  List, ListItem, Avatar,
+  List, ListItem, Avatar, 
   SearchBar, Header
 } from 'react-native-elements';
 import _ from "lodash";
+import ModalScreen from './ModalScreen';
 
 export default class HomeScreen extends React.Component {
   constructor(props) {
@@ -29,6 +32,9 @@ export default class HomeScreen extends React.Component {
       refreshing: false,
       query: '',
       fullData: [],
+      modalVisible: false,
+      id: null,
+      image: null,
     };
   }
 
@@ -37,15 +43,15 @@ export default class HomeScreen extends React.Component {
   };
 
   handleSearch = (text) => {
-      const formatQuery = text.toLowerCase();
-      const data = _.filter(this.state.fullData, data => {
-        if(data.Name.includes(formatQuery)){
-          return true;
-        }
-        return false;
-      });      
-      this.setState({query : text, data});
-   
+    const formatQuery = text.toLowerCase();
+    const data = _.filter(this.state.fullData, data => {
+      if (data.Name.includes(formatQuery)) {
+        return true;
+      }
+      return false;
+    });
+    this.setState({ query: text, data });
+
   }
 
   componentDidMount() {
@@ -57,23 +63,23 @@ export default class HomeScreen extends React.Component {
     const url = `http://192.168.1.7:8889/Resto/api/foods/getfoods`;
     this.setState({ loading: true });
     fetch(url, {
-      method: 'GET', 
+      method: 'GET',
       headers: {
-        "Content-Type" : "application/json",
-        "authorization": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJJZCI6IjMiLCJNX0dyb3VwdXNlcl9JZCI6IjEiLCJNX1ZlbmRvcl9JZCI6IjMiLCJVc2VybmFtZSI6ImFuZGlrIiwiUGFzc3dvcmQiOiI4ZDNlNjdiY2UyN2Y4MGI5YmU5NDNkYTViMzE2ZjVmOSIsIklzTG9nZ2VkSW4iOiIwIiwiSXNBY3RpdmUiOiIxIiwiTGFuZ3VhZ2UiOiJpbmRvbmVzaWEiLCJDcmVhdGVkQnkiOiJzdXBlcmFkbWluIiwiTW9kaWZpZWRCeSI6bnVsbCwiQ3JlYXRlZCI6IjIwMTktMDUtMjIgMTM6MTI6MjUiLCJNb2RpZmllZCI6IjIwMTktMDUtMjMgMTU6NDA6MDEifQ.-pZ6B-iwGN_HZhWwYYyFIJUCWUilKYs3mGQhmzO6toI" 
+        "Content-Type": "application/json",
+        "authorization": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJJZCI6IjMiLCJNX0dyb3VwdXNlcl9JZCI6IjEiLCJNX1ZlbmRvcl9JZCI6IjMiLCJVc2VybmFtZSI6ImFuZGlrIiwiUGFzc3dvcmQiOiI4ZDNlNjdiY2UyN2Y4MGI5YmU5NDNkYTViMzE2ZjVmOSIsIklzTG9nZ2VkSW4iOiIwIiwiSXNBY3RpdmUiOiIxIiwiTGFuZ3VhZ2UiOiJpbmRvbmVzaWEiLCJDcmVhdGVkQnkiOiJzdXBlcmFkbWluIiwiTW9kaWZpZWRCeSI6bnVsbCwiQ3JlYXRlZCI6IjIwMTktMDUtMjIgMTM6MTI6MjUiLCJNb2RpZmllZCI6IjIwMTktMDUtMjMgMTU6NDA6MDEifQ.-pZ6B-iwGN_HZhWwYYyFIJUCWUilKYs3mGQhmzO6toI"
       }
     }
     )
       .then(res => res.json())
-      .then(res => { 
-        
+      .then(res => {
+
         this.setState({
           data: page === 1 ? res.results : [...this.state.data, ...res.results],
           fullData: page === 1 ? res.results : [...this.state.data, ...res.results],
           error: res.error || null,
           loading: false,
           refreshing: false
-        }); 
+        });
       }
       )
       .catch(error => {
@@ -96,7 +102,7 @@ export default class HomeScreen extends React.Component {
   };
 
   renderHeader = () => {
-    return <SearchBar placeholder="Type Here..." lightTheme round onChangeText={this.handleSearch} value={this.state.query}/>;
+    return <SearchBar placeholder="Type Here..." lightTheme round onChangeText={this.handleSearch} value={this.state.query} />;
   };
 
   renderFooter = () => {
@@ -115,8 +121,17 @@ export default class HomeScreen extends React.Component {
     );
   };
 
+  
+  _onPressItem = (id, image) => {
+    this.setState({
+      modalVisible: true,
+      id: id,
+      image: image,
+    });
+  };
+
   render() {
-    
+
     const { query } = this.state;
 
     return (
@@ -130,32 +145,48 @@ export default class HomeScreen extends React.Component {
             justifyContent: 'space-around',
           }}
         />
-        <SearchBar placeholder="Type Here..." lightTheme round onChangeText={this.handleSearch} value={query}/>
-          <FlatList
-            data={this.state.data}
-            renderItem={({ item }) => 
-              
+        <SearchBar placeholder="Type Here..." lightTheme round onChangeText={this.handleSearch} value={query} />
+        <FlatList
+          data={this.state.data}
+          renderItem={({ item }) =>
+
             (
-              <ListItem
-                roundAvatar
-                title={`${item.Name}`}
-                subtitle={item.Vendor.Name}
-                leftAvatar={<Avatar
-                  size="medium"
-                  source={{
-                    uri: `http://192.168.1.33/publicRes/ ${item.Photos[0].Url}`,
+              <TouchableOpacity
+                style={styles.button}
+                //onPress={this._onPressItem(item.Id, `http://192.168.1.33/publicRes/uploads/resto/images/indomie-goreng-spesial-foto-resep-utama.jpg`)}
+              >
+                <ListItem
+
+                  roundAvatar
+                  title={`${item.Name}`}
+                  subtitle={item.Vendor.Name}
+                  leftAvatar={<Avatar
+                    size="medium"
+                    source={{
+                      uri: `http://192.168.1.33/publicRes/${item.Photos[0].Url}`,
+                    }}
+                  />}
+                  rightSubtitle={`Rp. ${item.Price}`}
+                  rightSubtitleStyle={{
+                    color: '#33b35a'
                   }}
-                />}
-                rightSubtitle={`Rp. ${item.Price}`}
-                rightSubtitleStyle = {{ 
-                  color: '#33b35a'
-                }}
-              />
+                />
+              </TouchableOpacity>
             )}
-            keyExtractor={item => item.Name}
-            ItemSeparatorComponent={this.renderSeparator}
-            ListFooterComponent={this.renderFooter}
-          />
+          keyExtractor={item => item.Name}
+          ItemSeparatorComponent={this.renderSeparator}
+          ListFooterComponent={this.renderFooter}
+        />
+        {/* <ModalScreen
+          modalVisible={this.state.modalVisible}
+          setModalVisible={vis => {
+            this.setState({ modalVisible: vis });
+          }}
+          id={this.state.id}
+          image={this.state.price}
+          >
+        </ModalScreen> */}
+
       </View>
     );
   }
