@@ -10,7 +10,7 @@ import {
   FlatList,
   Button,
   TouchableHighlight,
-  StatusBar
+  StatusBar,
 } from 'react-native';
 import { WebBrowser } from 'expo';
 import {
@@ -20,6 +20,7 @@ import {
 import _ from "lodash";
 import ModalScreen from './ModalScreen';
 import Modal from "react-native-modal";
+import { SafeAreaView } from 'react-navigation';
 
 export default class HomeScreen extends React.Component {
   constructor(props) {
@@ -34,7 +35,6 @@ export default class HomeScreen extends React.Component {
       refreshing: false,
       query: '',
       fullData: [],
-      modalVisible: false,
       id: null,
       image: null,
       isModalVisible: false
@@ -45,19 +45,23 @@ export default class HomeScreen extends React.Component {
     header: null,
   };
 
-  toggleModal = () => {
-    this.setState({ isModalVisible: !this.state.isModalVisible });
+  toggleModal = (id,image) => {
+    this.setState({ 
+      id: id,
+      image: image,
+      isModalVisible: true,
+    });
   };
 
   handleSearch = (text) => {
     const formatQuery = text.toLowerCase();
     const data = _.filter(this.state.fullData, data => {
-      if (data.Name.includes(formatQuery)) {
+      if (data.Name.toLowerCase().includes(formatQuery)) {
         return true;
       }
       return false;
     });
-    this.setState({ query: text, data });
+    this.setState({ query: text, isModalVisible: false, data });
 
   }
 
@@ -128,21 +132,11 @@ export default class HomeScreen extends React.Component {
     );
   };
 
-  
-  _onPressItem = (id, image) => {
-    this.setState({
-      modalVisible: true,
-      id: id,
-      image: image,
-    });
-  };
-
   render() {
-
     const { query } = this.state;
-
     return (
       <View style={styles.container}>
+        <StatusBar hidden={true} backgroundColor="rgba(0,0,0,0.7)" barStyle="light-content" />
         <Header
           leftComponent={{ icon: 'menu', color: '#fff' }}
           centerComponent={{ text: 'MY TITLE', style: { color: '#fff' } }}
@@ -161,9 +155,9 @@ export default class HomeScreen extends React.Component {
               <TouchableOpacity
                 style={styles.button}
                 onPress={() => {
-                  this.toggleModal();
+                  this.toggleModal(item.Id, item.Photos[0].Url);
                 }}
-                //onPress={this._onPressItem(item.Id, `http://192.168.1.33/publicRes/uploads/resto/images/indomie-goreng-spesial-foto-resep-utama.jpg`)}
+                
               >
                 <ListItem
 
@@ -188,34 +182,15 @@ export default class HomeScreen extends React.Component {
           ItemSeparatorComponent={this.renderSeparator}
           ListFooterComponent={this.renderFooter}
         />
-        <Modal isVisible={this.state.isModalVisible}
-          style = {{
-            margin :0
-          }}
+        <ModalScreen 
+        modalVisible={this.state.isModalVisible}
+        setIsModalVisible={vis => {
+          this.setState({ isModalVisible: vis });
+        }}
+        id={this.state.id}
+        image={this.state.image}
         >
-          <View style={{ 
-              flex: 1}}>
-            <StatusBar backgroundColor="rgba(0,0,0,0.7)"  barStyle="light-content"/>
-            <View style={{flex: 1, backgroundColor: 'transparent'}} 
-                  opacity = {0.7}
-            />
-            <View style={{flex: 2, backgroundColor: '#fff'}} >
-              <Text>Hello!</Text>
-              <Button title="Hide modal" onPress={this.toggleModal} />
-            </View>
-          </View>
-        </Modal>
-        {/* <ModalScreen
-          modalVisible={this.state.modalVisible}
-          setModalVisible={vis => {
-            this.setState({ modalVisible: vis });
-          }}
-          id={this.state.id}
-          image={this.state.price}
-          >
-        </ModalScreen> */}
-          
-
+        </ModalScreen>
       </View>
     );
   }
