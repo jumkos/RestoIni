@@ -54,20 +54,19 @@ export default class HomeScreen extends React.Component {
 
   makeRemoteRequest = () => {
     const { page, seed } = this.state;
-    const url = `http://192.168.1.25:8889/Resto/api/foods/getfoods`;
+    const url = `http://192.168.1.7:8889/Resto/api/foods/getfoods`;
     this.setState({ loading: true });
     fetch(url, {
       method: 'GET', 
       headers: {
         "Content-Type" : "application/json",
-        "Authorization": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJJZCI6IjMiLCJNX0dyb3VwdXNlcl9JZCI6IjEiLCJNX1ZlbmRvcl9JZCI6IjMiLCJVc2VybmFtZSI6ImFuZGlrIiwiUGFzc3dvcmQiOiI4ZDNlNjdiY2UyN2Y4MGI5YmU5NDNkYTViMzE2ZjVmOSIsIklzTG9nZ2VkSW4iOiIwIiwiSXNBY3RpdmUiOiIxIiwiTGFuZ3VhZ2UiOiJpbmRvbmVzaWEiLCJDcmVhdGVkQnkiOiJzdXBlcmFkbWluIiwiTW9kaWZpZWRCeSI6bnVsbCwiQ3JlYXRlZCI6IjIwMTktMDUtMjIgMTM6MTI6MjUiLCJNb2RpZmllZCI6IjIwMTktMDUtMjMgMTU6NDA6MDEifQ.-pZ6B-iwGN_HZhWwYYyFIJUCWUilKYs3mGQhmzO6toI" 
+        "authorization": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJJZCI6IjMiLCJNX0dyb3VwdXNlcl9JZCI6IjEiLCJNX1ZlbmRvcl9JZCI6IjMiLCJVc2VybmFtZSI6ImFuZGlrIiwiUGFzc3dvcmQiOiI4ZDNlNjdiY2UyN2Y4MGI5YmU5NDNkYTViMzE2ZjVmOSIsIklzTG9nZ2VkSW4iOiIwIiwiSXNBY3RpdmUiOiIxIiwiTGFuZ3VhZ2UiOiJpbmRvbmVzaWEiLCJDcmVhdGVkQnkiOiJzdXBlcmFkbWluIiwiTW9kaWZpZWRCeSI6bnVsbCwiQ3JlYXRlZCI6IjIwMTktMDUtMjIgMTM6MTI6MjUiLCJNb2RpZmllZCI6IjIwMTktMDUtMjMgMTU6NDA6MDEifQ.-pZ6B-iwGN_HZhWwYYyFIJUCWUilKYs3mGQhmzO6toI" 
       }
     }
     )
-      .then(res => 
-      console.log("a", res.json())) 
+      .then(res => res.json())
       .then(res => { 
-        console.log("Res", res);
+        
         this.setState({
           data: page === 1 ? res.results : [...this.state.data, ...res.results],
           fullData: page === 1 ? res.results : [...this.state.data, ...res.results],
@@ -130,16 +129,17 @@ export default class HomeScreen extends React.Component {
         <SearchBar placeholder="Type Here..." lightTheme round onChangeText={this.handleSearch} value={query}/>
           <FlatList
             data={this.state.data}
-            renderItem={({ item }) => (
-
+            renderItem={({ item }) => 
+              
+            (
               <ListItem
                 roundAvatar
                 title={`${item.Name}`}
                 subtitle={item.Description}
                 leftAvatar={<Avatar
-                  size="large"
+                  size="medium"
                   source={{
-                    uri: "http://192.168.1.33/publicRes/"+item.Url,
+                    uri: `http://192.168.1.33/publicRes/ ${item.Photos[0].Url}`,
                   }}
                 />}
                 rightSubtitle={`Rp. ${item.Price}`}
