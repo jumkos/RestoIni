@@ -8,8 +8,9 @@ import {
   TouchableOpacity,
   View,
   FlatList,
-  Modal,
+  Button,
   TouchableHighlight,
+  StatusBar
 } from 'react-native';
 import { WebBrowser } from 'expo';
 import {
@@ -18,6 +19,7 @@ import {
 } from 'react-native-elements';
 import _ from "lodash";
 import ModalScreen from './ModalScreen';
+import Modal from "react-native-modal";
 
 export default class HomeScreen extends React.Component {
   constructor(props) {
@@ -35,11 +37,16 @@ export default class HomeScreen extends React.Component {
       modalVisible: false,
       id: null,
       image: null,
+      isModalVisible: false
     };
   }
 
   static navigationOptions = {
     header: null,
+  };
+
+  toggleModal = () => {
+    this.setState({ isModalVisible: !this.state.isModalVisible });
   };
 
   handleSearch = (text) => {
@@ -153,6 +160,9 @@ export default class HomeScreen extends React.Component {
             (
               <TouchableOpacity
                 style={styles.button}
+                onPress={() => {
+                  this.toggleModal();
+                }}
                 //onPress={this._onPressItem(item.Id, `http://192.168.1.33/publicRes/uploads/resto/images/indomie-goreng-spesial-foto-resep-utama.jpg`)}
               >
                 <ListItem
@@ -173,10 +183,28 @@ export default class HomeScreen extends React.Component {
                 />
               </TouchableOpacity>
             )}
+            
           keyExtractor={item => item.Name}
           ItemSeparatorComponent={this.renderSeparator}
           ListFooterComponent={this.renderFooter}
         />
+        <Modal isVisible={this.state.isModalVisible}
+          style = {{
+            margin :0
+          }}
+        >
+          <View style={{ 
+              flex: 1}}>
+            <StatusBar backgroundColor="rgba(0,0,0,0.7)"  barStyle="light-content"/>
+            <View style={{flex: 1, backgroundColor: 'transparent'}} 
+                  opacity = {0.7}
+            />
+            <View style={{flex: 2, backgroundColor: '#fff'}} >
+              <Text>Hello!</Text>
+              <Button title="Hide modal" onPress={this.toggleModal} />
+            </View>
+          </View>
+        </Modal>
         {/* <ModalScreen
           modalVisible={this.state.modalVisible}
           setModalVisible={vis => {
@@ -186,6 +214,7 @@ export default class HomeScreen extends React.Component {
           image={this.state.price}
           >
         </ModalScreen> */}
+          
 
       </View>
     );
